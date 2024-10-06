@@ -54,7 +54,9 @@ This system provides an efficient and scalable solution for modern energy manage
 <details>
   <summary>Detail</summary>
 
-  > Update the functional block diagram here.
+  > Block Diagram for Prepaid Smart Energy Management System
+![DDS-miniproject-S1-T17 drawio](https://github.com/user-attachments/assets/cded4198-5f94-4672-ac13-760dd46ec881)
+
 </details>
 
 <!-- Third Section -->
