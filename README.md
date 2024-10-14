@@ -468,7 +468,7 @@ module tb;
     $monitor("Time=%0d   sensor=%b  date_1=%b  prepaid=%b  balance=%b  units=%b  alert1=%1b  alert2=%1b",$time,sensor,date_1,prepaid,balance,avg_per_day,days_lasting,units_cons,alert1,alert2);
    end
 endmodule
-
+```
 </details>
 
 ## References
