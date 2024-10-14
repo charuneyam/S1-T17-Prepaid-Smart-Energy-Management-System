@@ -64,7 +64,7 @@ This system provides an efficient and scalable solution for modern energy manage
 <details>
   <summary>Detail</summary>
 
-  > Explain how your model works with the help of a functional table (compulsory) followed by the flowchart.
+  
 </details>
 
 <!-- Fourth Section -->
@@ -72,7 +72,38 @@ This system provides an efficient and scalable solution for modern energy manage
 <details>
   <summary>Detail</summary>
 
-    > Update a neat logisim circuit diagram
+  The "[Logisim](https://github.com/charuneyam/S1-T17-Prepaid-Smart-Energy-Management-System/tree/main/Logisim)" folder consists of the logisim file of overall implementation of our project - Prepaid Energy Management System..
+```
+    Instructions for using the overall implementation file(.circ file):-
+    1. Set the required switches and inputs as instructed in the main.circ in the overall implementation file.
+    2. Set 'prepaid money' (which is in bits) as per your wish. (<=512 rupees). Ignore the the Msb, which is the 10th bit i.e Msb is always 0(to keep it overall number positive).
+    3. First press 'DATE TRIGGER' to increase date from 1 to 31.
+    4. Press the 'SENSOR INPUT' twice to increase electricity units consumed by 1 unit(two presses = 1 unit of electricity consumed).
+    5. You will get the outputs(such as total units consumed, balance money, alerts, average consumption on money)on the right end of the main.circ file.
+    6. When balance money becomes 0 (shown by alert1) you can set your prepaid amount to next credit you want to purchase.  
+```
+Overall Circuit
+![Overall Circuit](https://github.com/user-attachments/assets/adf832e2-8098-452d-9b6a-e87551f4e989)
+
+SUBTRACTOR_freelimit
+![SUBTRACTOR_free limit](https://github.com/user-attachments/assets/57375486-b280-420d-be23-f2e08765fb56)
+
+
+Range1_units_consumed
+![range1_units consumed](https://github.com/user-attachments/assets/0167d526-92d2-4b19-a8a5-f95f8c17aa84)
+
+
+Range2_units_consumed
+![range2_units consumed](https://github.com/user-attachments/assets/31af94a3-f756-4cfc-8342-f99b334b2e6f)
+
+
+Range3_units_consumed
+![range3_units consumed](https://github.com/user-attachments/assets/e096257e-6257-4150-b672-7d3705e6982c)
+
+
+Date Counter
+![Date Counter](https://github.com/user-attachments/assets/e5acb752-8ae4-443a-8308-29d099fb5405)
+
 </details>
 
 <!-- Fifth Section -->
