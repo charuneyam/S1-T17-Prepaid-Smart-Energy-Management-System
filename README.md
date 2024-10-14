@@ -63,7 +63,15 @@ This system provides an efficient and scalable solution for modern energy manage
 ## Working
 <details>
   <summary>Detail</summary>
-
+The circuit takes in prepaid amount for your electricity and keeps a track of your balance money as it keeps track of your electricity consumed in terms of units consumed using counters. It also has the feature of date consideration using counters for calculating electricity consumed and average money spent on electricity per day. Sensor Input which is positive edge triggered is used to indicate 1 unit of electricity consumed each time it is positive edge triggered. A counter keeps track of total units consumed. There is range based calculation of price per unit in three different ranges, done by three different modules comprising of series of comparators, multiplexers, multipliers and other logic gates.
+(a) 0 to 50 units, No money charged-free limit
+(b) 51 to 100 units, 1rs/unit
+(c) 101 to 150 units, 2rs/unit
+(d) >150 units, 3rs/unit.
+Circuit calculates total price spent and shows balance money left from prepaid amount.
+It also shows alerts while comparing danger level with balance money.
+Using registers and date input, average consumption in terms of money and warning of how many more days the plan might last is also available as output.
+Additionally, when balance becomes 0, user can buy extra credits too.
   
 </details>
 
