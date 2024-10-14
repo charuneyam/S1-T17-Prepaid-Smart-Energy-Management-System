@@ -83,7 +83,8 @@ This system provides an efficient and scalable solution for modern energy manage
     6. When balance money becomes 0 (shown by alert1) you can set your prepaid amount to next credit you want to purchase.  
 ```
 Overall Circuit
-![Overall Circuit](https://github.com/user-attachments/assets/adf832e2-8098-452d-9b6a-e87551f4e989)
+![Overall Circuit](https://github.com/user-attachments/assets/bc69ff6f-98e4-486c-8ca1-e6ddfcd16ccb)
+
 
 SUBTRACTOR_freelimit
 ![SUBTRACTOR_free limit](https://github.com/user-attachments/assets/57375486-b280-420d-be23-f2e08765fb56)
