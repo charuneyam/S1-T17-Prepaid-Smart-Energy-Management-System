@@ -1,42 +1,36 @@
 module tb;
-    
-   reg sensor, date_1;
-   reg [9:0] prepaid;
-   wire [9:0] balance;
-   wire [9:0] avg_per_day;
-   wire [9:0] days_lasting;
-   wire [9:0] units_cons;
-   wire alert1;
-   wire alert2;
+    reg sensor, date_1, reset;
+    reg [9:0] prepaid;
+    wire [9:0] balance, avg_per_day, days_lasting, units_cons;
+    wire alert1, alert2;
+    wire [4:0] date;
 
-   main dut(sensor, date_1, prepaid, balance, avg_per_day, days_lasting, units_cons, alert1, alert2);
+    // Instantiate the main module
+    main dut(sensor, date_1, reset, prepaid, balance, avg_per_day, days_lasting, units_cons, alert1, alert2, date);
 
-   initial begin
-    sensor = 0;
-    forever #10 sensor = ~sensor;
-   end
+    initial begin
+        // Initial conditions
+        sensor = 0;
+        date_1 = 0;
+        reset = 1;
+        prepaid = 300;
+        
+        #10 reset = 0;  // Deactivate reset after 10 time units
+        
+        // Simulate sensor toggling and date incrementing
+        repeat(800) begin
+            #10 sensor = ~sensor;  // Toggle sensor every 10 time units (simulate consumption)
+            if ($time % 100 == 0) 
+                date_1 = ~date_1;  // Toggle date_1 every 100 time units (positive edge triggers date increment)
+        end
+        
+        // End simulation after sufficient time
+        #100 $finish;
+    end
 
-   initial begin
-    date_1 = 1;
-    #10
-    date_1 = 0;
-    #30
-    date_1 = 1;
-    #10
-    date_1 = 0;
-
-    #5000
-
-    $finish;
-   end
-
-   initial begin
-    prepaid = 300;
-   end
-
-   initial begin
-    $monitor("Time=%0d   sensor=%b  date_1=%b  prepaid=%b  balance=%b  units=%b  alert1=%1b  alert2=%1b",$time,sensor,date_1,prepaid,balance,avg_per_day,days_lasting,units_cons,alert1,alert2);
-   end
+    // Monitor signals and values throughout the simulation
+    initial begin
+        $monitor("Time=%0d sensor=%b date_1=%b date=%d reset=%b prepaid=%d balance=%d avg_per_day=%d days_lasting=%d units_cons=%d alert1=%b alert2=%b",
+                 $time, sensor, date_1, date, reset, prepaid, balance, avg_per_day, days_lasting, units_cons, alert1, alert2);
+    end
 endmodule
-
-   

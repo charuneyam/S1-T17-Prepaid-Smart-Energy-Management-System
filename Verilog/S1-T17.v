@@ -1,6 +1,3 @@
-//Date counter 
-
-
 //Counter
 module T_FF (input T, input clk, input reset, output reg Q);  //T flipflop module
     always @(posedge clk or posedge reset) begin
@@ -10,47 +7,39 @@ module T_FF (input T, input clk, input reset, output reg Q);  //T flipflop modul
             Q <= ~Q;
     end
 endmodule
-module Mod256Counter (input sensor, input date_1, output [9:0] units_cons);
-    wire [7:0] T;
-    wire [7:0] Q;
 
-    assign T[0] = 1;
-    assign T[1] = Q[0];
-    assign T[2] = Q[0] & Q[1];
-    assign T[3] = Q[0] & Q[1] & Q[2];
-    assign T[4] = Q[0] & Q[1] & Q[2] & Q[3];
-    assign T[5] = Q[0] & Q[1] & Q[2] & Q[3] & Q[4];
-    assign T[6] = Q[0] & Q[1] & Q[2] & Q[3] & Q[4] & Q[5];
-    assign T[7] = Q[0] & Q[1] & Q[2] & Q[3] & Q[4] & Q[5] & Q[6];
+module date_counter(
+    input date_1,
+    input reset,
+    output reg [4:0] date
+);
 
-    T_FF tff0 (T[0], sensor, date_1, Q[0]);
-    T_FF tff1 (T[1], sensor, date_1, Q[1]);
-    T_FF tff2 (T[2], sensor, date_1, Q[2]);
-    T_FF tff3 (T[3], sensor, date_1, Q[3]);
-    T_FF tff4 (T[4], sensor, date_1, Q[4]);
-    T_FF tff5 (T[5], sensor, date_1, Q[5]);
-    T_FF tff6 (T[6], sensor, date_1, Q[6]);
-    T_FF tff7 (T[7], sensor, date_1, Q[7]);
-
-    assign units_cons = Q;
+    always @(posedge date_1 or posedge reset) begin
+        if (reset)
+            date <= 5'd1;  // Reset to day 1
+        else if (date == 5'd31)
+            date <= 5'd1;  // Wrap around to day 1 after day 31
+        else
+            date <= date + 1'd1;  // Increment the date on positive edge of date_1
+    end
 endmodule
-//Comparator for free limit
-module comparator1(input [9:0] units_cons,
-                   output reg F);
 
-    reg [9:0] free_limit;
-    
-    initial
-    free_limit = 10'b0000110010; //free limit = upto 50 units
 
-    always @ (*)
-     begin
-       if(units_cons>free_limit)
-         F = 1;
-       else
-         F = 0;
-     end
+module Mod256Counter (
+    input sensor,
+    input date_1,
+    input reset,
+    output reg [9:0] units_cons
+);
+    always @(posedge sensor or posedge reset) begin
+        if (reset)
+            units_cons <= 10'd0;
+        else
+            units_cons <= (units_cons == 10'd255) ? 10'd0 : units_cons + 1'd1;
+    end
 endmodule
+
+
 //Subtractor to get units consumed after free limit
 module subtractor_10bit(input [9:0] units_cons, 
                        input F,
@@ -67,6 +56,21 @@ module subtractor_10bit(input [9:0] units_cons,
         Diff = units_cons - free_limit;
         else
         Diff = 10'b0000000000;
+    end
+endmodule
+
+
+module comparator1(
+    input [9:0] units_cons,
+    output reg F
+);
+    parameter FREE_LIMIT = 10'd50; // Assuming 50 units as the free limit
+
+    always @(*) begin
+        if (units_cons > FREE_LIMIT)
+            F = 1'b1;
+        else
+            F = 1'b0;
     end
 endmodule
 
@@ -202,22 +206,28 @@ module mul3 (input [9:0] units_out,
         end
 endmodule
 //Module to get total price consumed
-module price_adder (input[9:0] R1,R2,R3,
-              output reg [9:0] tot_cost_cons);
-
+module price_adder(
+    input [9:0] R1, R2, R3,
+    output reg [9:0] tot_cost_cons
+);
     always @(*) begin
-         tot_cost_cons = R1 + R2 + R3;
+        tot_cost_cons = R1 + R2 + R3;
     end
 endmodule
 //Subtractor Module to find balance amount from prepaid amount
-module subtractor_balance(input[9:0] prepaid, tot_cost_cons,
-                          output reg [9:0] balance);
-
+module subtractor_balance(
+    input [9:0] prepaid, 
+    input [9:0] tot_cost_cons,
+    output reg [9:0] balance
+);
     always @(*) begin
-        balance = prepaid - tot_cost_cons;
+        if (prepaid >= tot_cost_cons)
+            balance = prepaid - tot_cost_cons;
+        else
+            balance = 10'd0;
     end
-    
 endmodule
+
 //comparator for alerts
 module alert(input[9:0] balance,
              output reg alert1, alert2);
@@ -238,72 +248,59 @@ module alert(input[9:0] balance,
 
 endmodule
 //Module to find approximate Average consumption per day
-module find_avg(input [9:0] tot_cost_cons,
-                input [4:0] date,
-                output reg [9:0] avg_per_day);
-
-    always @ (date)
-    begin
-        avg_per_day = tot_cost_cons/date;
+module find_avg(
+    input [9:0] tot_cost_cons,
+    input [4:0] date,
+    output reg [9:0] avg_per_day
+);
+    always @(*) begin
+        if (date != 5'd0)
+            avg_per_day = tot_cost_cons / date;
+        else
+            avg_per_day = tot_cost_cons;
     end
 endmodule
-//approximately how many more days will the plan last
-module days_lasting(input [9:0] balance,
-                input [9:0] avg_per_day,
-                output reg [9:0] days_lasting);
 
-    always @ (avg_per_day)
-    begin
-        days_lasting = balance/avg_per_day;
+//approximately how many more days will the plan last
+module days_lasting(
+    input [9:0] balance,
+    input [9:0] avg_per_day,
+    output reg [9:0] days_lasting
+);
+    always @(*) begin
+        if (avg_per_day != 10'd0)
+            days_lasting = balance / avg_per_day;
+        else
+            days_lasting = 10'd999; // Arbitrary large number to indicate "many days"
     end
 endmodule
 
 //MAIN MODULE
-module main(input sensor, date_1, 
-            input [9:0] prepaid,
-            output reg [9:0] balance, avg_per_day, days_lasting, units_cons,
-            output reg alert1,alert2);
+module main(
+    input sensor, date_1, reset,
+    input [9:0] prepaid,
+    output wire [9:0] balance, avg_per_day, days_lasting, units_cons,
+    output wire alert1, alert2,
+    output[4:0] date
+);
+    wire F;
+    wire next1, next2;
+    wire [9:0] units_aft_fl, units_out1, units_out2, units_out3;
+    wire [9:0] cost_cons_in_r2, cost_cons_in_r3, tot_cost_cons;
+    wire [4:0] date;
 
-       wire F;
-       wire next1;
-       wire next2;
-       wire [9:0] units_aft_fl;
-       wire [9:0] units_out1;
-       wire [9:0] units_out2;
-       wire [9:0] units_out3;
-       wire [9:0] cost_cons_in_r2;
-       wire [9:0] cost_cons_in_r3;
-       wire [9:0] tot_cost_cons;
-
-       //Date counter call
-       
-       
-       Mod256Counter dut1(sensor,date_1,units_cons);
-       
-       comparator1 dut2(units_cons,F);
-
-       subtractor_10bit dut3(units_cons,F,units_aft_fl);
-
-       range1 dut4(units_aft_fl,units_out1,next1);
-
-       range2 dut5(units_aft_fl,next1,units_out2,next2);
-
-       range3 dut6(units_aft_fl,next2,units_out3);
-
-       mul2 dut7(units_out2,cost_cons_in_r2);
-
-       mul3 dut8(units_out3,cost_cons_in_r3);
-
-       price_adder dut9(units_out1,cost_cons_in_r2,cost_cons_in_r3,tot_cost_cons);
-
-       subtractor_balance dut10(prepaid,tot_cost_cons,balance);
-
-       alert dut11(balance,alert1,alert2);
-       
-
-       find_avg dut12(tot_cost_cons,date,avg_per_day);
-
-       days_lasting dut13(balance,avg_per_day,days_lasting);
-
+    date_counter dut_date(date_1, reset, date);
+    Mod256Counter dut1(sensor, date_1, reset, units_cons);
+    comparator1 dut2(units_cons, F);
+    subtractor_10bit dut3(units_cons, F, units_aft_fl);
+    range1 dut4(units_aft_fl, units_out1, next1);
+    range2 dut5(units_aft_fl, next1, units_out2, next2);
+    range3 dut6(units_aft_fl, next2, units_out3);
+    mul2 dut7(units_out2, cost_cons_in_r2);
+    mul3 dut8(units_out3, cost_cons_in_r3);
+    price_adder dut9(units_out1, cost_cons_in_r2, cost_cons_in_r3, tot_cost_cons);
+    subtractor_balance dut10(prepaid, tot_cost_cons, balance);
+    alert dut11(balance, alert1, alert2);
+    find_avg dut12(tot_cost_cons, date, avg_per_day);
+    days_lasting dut13(balance, avg_per_day, days_lasting);
 endmodule
-
