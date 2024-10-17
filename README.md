@@ -73,6 +73,12 @@ It also shows alerts while comparing danger level with balance money.
 Using registers and date input, average consumption in terms of money and warning of how many more days the plan might last is also available as output.
 Additionally, when balance becomes 0, user can buy extra credits too.
   
+![S1-T17-output 2](https://github.com/user-attachments/assets/929b69f8-cd1e-4834-886c-d7171fc81d33)
+![S1-T17-output 3](https://github.com/user-attachments/assets/5cdfa72a-8a64-4ad8-b24d-42ac0de0a75a)
+![S1-T17-output 4](https://github.com/user-attachments/assets/3269e3f0-87f2-4614-b190-e4b3c4fc54ed)
+![S1-T17-output 5](https://github.com/user-attachments/assets/3dbc91fc-b8a3-42b2-9b61-dd68753f1985)
+![S1-T17-output 1](https://github.com/user-attachments/assets/8c089103-8bec-4def-bbfc-45f9d7b2c5a4)
+
 </details>
 
 <!-- Fourth Section -->
