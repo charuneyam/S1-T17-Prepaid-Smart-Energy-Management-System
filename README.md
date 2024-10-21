@@ -444,14 +444,36 @@ endmodule
   ### Modules
 ```
 //Counter
-module T_FF (input T, input clk, input reset, output reg Q);  //T flipflop module
+module T_FF (
+    input T,           // T input (Toggle)
+    input clk,         // Clock input
+    input reset,       // Reset input (active-high)
+    output reg Q       // Output Q
+);
+
+    // Intermediate signals
+    wire not_Q, and1_out, and2_out, mux_out;
+
+    // NOT gate to invert Q
+    not U1 (not_Q, Q);  // not_Q = ~Q
+
+    // AND gates for toggle and hold logic
+    and U2 (and1_out, T, not_Q);  // and1_out = T & ~Q (toggle path)
+    and U3 (and2_out, T, Q);      // and2_out = T & Q (hold path)
+
+    // OR gate to select between toggle and hold paths
+    or U4 (mux_out, and1_out, and2_out);  // mux_out = (T & ~Q) | (T & Q)
+
+    // D flip-flop behavior with reset logic
     always @(posedge clk or posedge reset) begin
-        if (reset)
-            Q <= 0;
-        else if (T)
-            Q <= ~Q;
+        case (reset)
+            1'b1: Q <= 1'b0;        // Reset Q to 0
+            1'b0: Q <= mux_out;     // Update Q with toggle or hold value
+        endcase
     end
 endmodule
+
+
 
 module date_counter (
     input date_1,
@@ -496,19 +518,49 @@ module date_counter (
 endmodule
 
 // 5-bit D Flip-Flop
+
 module dff_5bit (
-    input [4:0] d,
-    input clk,
-    input reset,
-    output reg [4:0] q
+    input [4:0] d,       // 5-bit data input
+    input clk,           // Clock input
+    input reset,         // Reset input (active-high)
+    output reg [4:0] q   // 5-bit output
 );
-    always @(posedge clk or posedge reset) begin
-        if (reset)
-            q <= 5'b00001;
-        else
-            q <= d;
+
+    // Intermediate signals for gate logic
+    wire not_reset;
+    wire [4:0] and1_out, and2_out, mux_out;
+
+    // NOT gate for reset signal
+    not U0 (not_reset, reset);  // not_reset = ~reset
+
+    // AND gates for mux logic: Select either reset value or d based on reset signal
+    and U1 (and1_out[0], reset, 1'b1);  // and1_out[0] = reset & 1'b1
+    and U2 (and1_out[1], reset, 1'b0);  // and1_out[1] = reset & 1'b0
+    and U3 (and1_out[2], reset, 1'b0);  // and1_out[2] = reset & 1'b0
+    and U4 (and1_out[3], reset, 1'b0);  // and1_out[3] = reset & 1'b0
+    and U5 (and1_out[4], reset, 1'b0);  // and1_out[4] = reset & 1'b0
+
+    and U6 (and2_out[0], not_reset, d[0]);  // and2_out[0] = ~reset & d[0]
+    and U7 (and2_out[1], not_reset, d[1]);  // and2_out[1] = ~reset & d[1]
+    and U8 (and2_out[2], not_reset, d[2]);  // and2_out[2] = ~reset & d[2]
+    and U9 (and2_out[3], not_reset, d[3]);  // and2_out[3] = ~reset & d[3]
+    and U10 (and2_out[4], not_reset, d[4]); // and2_out[4] = ~reset & d[4]
+
+    // OR gates to combine the two AND gate outputs for each bit
+    or U11 (mux_out[0], and1_out[0], and2_out[0]);  // mux_out[0] = (reset & 1) | (~reset & d[0])
+    or U12 (mux_out[1], and1_out[1], and2_out[1]);  // mux_out[1] = (reset & 0) | (~reset & d[1])
+    or U13 (mux_out[2], and1_out[2], and2_out[2]);  // mux_out[2] = (reset & 0) | (~reset & d[2])
+    or U14 (mux_out[3], and1_out[3], and2_out[3]);  // mux_out[3] = (reset & 0) | (~reset & d[3])
+    or U15 (mux_out[4], and1_out[4], and2_out[4]);  // mux_out[4] = (reset & 0) | (~reset & d[4])
+
+    // Always block for D flip-flop functionality
+    always @(posedge clk) begin
+        q <= mux_out;  // Store the value from the MUX on the clock edge
     end
+
 endmodule
+
+
 
 // Full Adder
 module full_adder (
@@ -1189,7 +1241,7 @@ module adder_10bit(
     output carry_out
 );
     wire [10:0] carry;
-    assign carry[0] = 0;
+    buf(carry[0],0);
 
     genvar i;
     generate
@@ -1204,7 +1256,7 @@ module adder_10bit(
         end
     endgenerate
 
-    assign carry_out = carry[10];
+    buf(carry_out,carry[10]);
 endmodule
 
 //Subtractor Module to find balance amount from prepaid amount
@@ -1221,8 +1273,7 @@ module subtractor_balance(
     subtractor_10bit sub (
         .a(prepaid),
         .b(tot_cost_cons),
-        .diff(subtraction_result),
-        .borrow_out(borrow_out)
+        .diff(subtraction_result)
     );
 
     // Multiplexer to select between subtraction result and 0
@@ -1265,9 +1316,8 @@ module alert(
     subtractor_10bit sub (
         .a(balance),
         .b(danger_lvl),
-        .diff(sub_result),
-        .borrow_out(borrow)
-    );
+        .diff(sub_result)
+        );
 
     // alert1 is high if balance <= danger_lvl (borrow is high)
     buf (alert1, borrow);
@@ -1375,44 +1425,109 @@ module days_lasting(
 endmodule
 
 // 10-bit divider module
-module divider(
-    input clk,
-    input reset,
-    input [9:0] dividend,
-    input [9:0] divisor,
-    output reg [9:0] quotient,
-    output reg done
+
+module divider (
+    input clk,                  // Clock input
+    input reset,                // Reset input (active-high)
+    input [9:0] dividend,       // 10-bit dividend
+    input [9:0] divisor,        // 10-bit divisor
+    output reg [9:0] quotient,  // 10-bit quotient output
+    output reg done             // Done signal
 );
-    reg [9:0] temp_dividend;
-    reg [3:0] count;
-    
-    always @(posedge clk or posedge reset) begin
-        if (reset) begin
-            temp_dividend <= 0;
-            quotient <= 0;
-            count <= 0;
-            done <= 0;
-        end else begin
-            if (!done) begin
-                if (count == 0) begin
-                    temp_dividend <= dividend;
-                    count <= count + 1;
-                end else if (count <= 10) begin
-                    if (temp_dividend >= divisor) begin
-                        temp_dividend <= temp_dividend - divisor;
-                        quotient <= (quotient << 1) | 1'b1;
-                    end else begin
-                        quotient <= quotient << 1;
-                    end
-                    temp_dividend <= temp_dividend << 1;
-                    count <= count + 1;
-                end else begin
-                    done <= 1;
-                end
-            end
+
+    reg [9:0] temp_dividend;  // Temporary dividend register
+    reg [3:0] count;          // 4-bit counter
+
+    // Intermediate signals for gate-level logic
+    wire [9:0] temp_div_sub;
+    wire gt_or_eq;
+    wire not_reset;
+    wire [9:0] and1_div, and2_div, mux_dividend;
+    wire [9:0] and1_quot, and2_quot, mux_quotient;
+    wire [3:0] and1_count, and2_count, mux_count;
+    wire and1_done, and2_done, mux_done;
+
+    // Subtraction: temp_dividend - divisor
+    assign temp_div_sub = temp_dividend - divisor;
+
+    // NOT gate for reset signal
+    not U0 (not_reset, reset);
+
+    // Comparator: Check if temp_dividend >= divisor
+    assign gt_or_eq = (temp_dividend >= divisor);
+
+    // --------- Gate-level logic for MUX: temp_dividend ---------
+    and U1 (and1_div[0], reset, 1'b0);
+    and U2 (and2_div[0], not_reset, 
+            (count == 4'b0) ? dividend[0] : 
+            (gt_or_eq ? temp_div_sub[0] : temp_dividend[0] << 1));
+    or U3 (mux_dividend[0], and1_div[0], and2_div[0]);
+
+    and U4 (and1_div[1], reset, 1'b0);
+    and U5 (and2_div[1], not_reset, 
+            (count == 4'b0) ? dividend[1] : 
+            (gt_or_eq ? temp_div_sub[1] : temp_dividend[1] << 1));
+    or U6 (mux_dividend[1], and1_div[1], and2_div[1]);
+
+    // Repeat similar logic for all bits [2:9]
+    genvar i;
+    generate
+        for (i = 2; i < 10; i = i + 1) begin
+            and U_div_1 (and1_div[i], reset, 1'b0);
+            and U_div_2 (and2_div[i], not_reset, 
+                         (count == 4'b0) ? dividend[i] : 
+                         (gt_or_eq ? temp_div_sub[i] : temp_dividend[i] << 1));
+            or U_div_3 (mux_dividend[i], and1_div[i], and2_div[i]);
         end
+    endgenerate
+
+    // --------- Gate-level logic for MUX: quotient ---------
+    and U7 (and1_quot[0], reset, 1'b0);
+    and U8 (and2_quot[0], not_reset, 
+            (gt_or_eq ? ((quotient[0] << 1) | 1'b1) : quotient[0] << 1));
+    or U9 (mux_quotient[0], and1_quot[0], and2_quot[0]);
+
+    // Repeat similar logic for all bits [1:9]
+    generate
+        for (i = 1; i < 10; i = i + 1) begin
+            and U_quot_1 (and1_quot[i], reset, 1'b0);
+            and U_quot_2 (and2_quot[i], not_reset, 
+                          (gt_or_eq ? ((quotient[i] << 1) | 1'b1) : quotient[i] << 1));
+            or U_quot_3 (mux_quotient[i], and1_quot[i], and2_quot[i]);
+        end
+    endgenerate
+
+    // --------- Gate-level logic for MUX: count ---------
+    and U10 (and1_count[0], reset, 1'b0);
+    and U11 (and2_count[0], not_reset, 
+             (count == 4'b0 ? 4'b1 : count + 1));
+    or U12 (mux_count[0], and1_count[0], and2_count[0]);
+
+    generate
+        for (i = 1; i < 4; i = i + 1) begin
+            and U_count_1 (and1_count[i], reset, 1'b0);
+            and U_count_2 (and2_count[i], not_reset, 
+                           (count == 4'b0 ? 4'b1 : count + 1));
+            or U_count_3 (mux_count[i], and1_count[i], and2_count[i]);
+        end
+    endgenerate
+
+    // --------- Gate-level logic for MUX: done ---------
+    and U13 (and1_done, reset, 1'b0);
+    and U14 (and2_done, not_reset, 
+             (count >= 4'b1010 ? 1'b1 : 1'b0));
+    or U15 (mux_done, and1_done, and2_done);
+
+    // --------- Sequential logic: D Flip-Flops to store state ---------
+    always @(posedge clk) begin
+        temp_dividend <= mux_dividend;
+        quotient <= mux_quotient;
+        count <= mux_count;
+        done <= mux_done;
     end
 endmodule
+
+
 
 // 2-to-1 Multiplexer for 10-bit inputs
 module mux2to1_10bit(
@@ -1462,7 +1577,7 @@ module main(
                                                          // the sensor resets to 0 when date is 31 or reset is 1
 
     comparator1 dut2(units_cons, F);                     // checks wheter it has crossed the free limit
-    subtractor_10bit dut3(units_cons, F, units_aft_fl);  // if F=0 then sub is inactive else gives the extra amount
+    subtractor_10bit dut3(units_cons, 10'b0000110010,units_aft_fl);  // if F=0 then sub is inactive else gives the extra amount
     range1 dut4(units_aft_fl, units_out1, next1);
     range2 dut5(units_aft_fl, next1, units_out2, next2);
     range3 dut6(units_aft_fl, next2, units_out3);
@@ -1473,6 +1588,44 @@ module main(
     alert dut11(balance, alert1, alert2);                       // output
     find_avg dut12(tot_cost_cons, date, sensor, sensor, avg_per_day);           // output
     days_lasting dut13(balance, avg_per_day, sensor, sensor, days_lasting);     // output
+endmodule
+
+
+module tb;
+    reg sensor, date_1, reset;
+    reg [9:0] prepaid;
+    wire [9:0] balance, avg_per_day, days_lasting, units_cons;
+    wire alert1, alert2;
+    wire [4:0] date;
+
+    // Instantiate the main module
+    main dut(sensor, date_1, reset, prepaid, balance, avg_per_day, days_lasting, units_cons, alert1, alert2, date);
+
+    initial begin
+        // Initial conditions
+        sensor = 0;
+        date_1 = 0;
+        reset = 1;
+        prepaid = 300;
+        
+        #10 reset = 0;  // Deactivate reset after 10 time units
+        
+        // Simulate sensor toggling and date incrementing
+        repeat(800) begin
+            #10 sensor = ~sensor;  // Toggle sensor every 10 time units (simulate consumption)
+            if ($time % 100 == 0) 
+                date_1 = ~date_1;  // Toggle date_1 every 100 time units (positive edge triggers date increment)
+        end
+        
+        // End simulation after sufficient time
+        #100 $finish;
+    end
+
+    // Monitor signals and values throughout the simulation
+    initial begin
+        $monitor("Time=%0d sensor=%b date_1=%b date=%d reset=%b prepaid=%d balance=%d avg_per_day=%d days_lasting=%d units_cons=%d alert1=%b alert2=%b",
+                 $time, sensor, date_1, date, reset, prepaid, balance, avg_per_day, days_lasting, units_cons, alert1, alert2);
+    end
 endmodule
 ```
 </details>
