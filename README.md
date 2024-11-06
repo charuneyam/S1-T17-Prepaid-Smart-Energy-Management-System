@@ -1639,16 +1639,17 @@ endmodule
 ## Hardware Implementation
 <details>
   <summary>Details</summary>
+  
   Scaled-down Hardware Implementation Circuit
-  ![main-hardware](https://github.com/user-attachments/assets/10e1590b-2f72-4e95-8ec4-be90996067ad)
+![main-hardware](https://github.com/user-attachments/assets/10e1590b-2f72-4e95-8ec4-be90996067ad)
 
   Electricity Units Counter
 ![Units Counter](https://github.com/user-attachments/assets/d979d55d-7812-4855-8e45-b9324660eb89)
 
-Freelimit Subtractor
+  Freelimit Subtractor
 ![Freelimit Subtractor](https://github.com/user-attachments/assets/d7a2175a-6f64-433c-8214-58be931647d8)
 
-Balance Generator
+  Balance Generator
 ![Balance Generator](https://github.com/user-attachments/assets/252b63b4-2273-4e14-b010-b0c3a2c1a659)
 
 </details>
