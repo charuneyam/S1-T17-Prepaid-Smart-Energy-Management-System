@@ -1636,6 +1636,14 @@ endmodule
 ```
 </details>
 
+## Hardware Implementation
+<details>
+  <summary>Details</summary>
+  
+  ![main-hardware](https://github.com/user-attachments/assets/10e1590b-2f72-4e95-8ec4-be90996067ad)
+
+</details>
+
 ## References
 <details>
   <summary>Detail</summary>
