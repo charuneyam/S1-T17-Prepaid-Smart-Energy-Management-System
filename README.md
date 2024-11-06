@@ -1640,6 +1640,7 @@ endmodule
 <details>
   <summary>Details</summary>
   The "[Logisim](https://github.com/charuneyam/S1-T17-Prepaid-Smart-Energy-Management-System/tree/main/Logisim)" folder consists of the logisim file of hardware implementation of our project - Prepaid Energy Management System..
+
   
   Scaled-down Hardware Implementation Circuit
 ![main-hardware](https://github.com/user-attachments/assets/10e1590b-2f72-4e95-8ec4-be90996067ad)
