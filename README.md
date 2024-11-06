@@ -1639,6 +1639,8 @@ endmodule
 ## Hardware Implementation
 <details>
   <summary>Details</summary>
+  We scaled down the project to a simpler model where the electricity units consumed counter operates on a 2-bit scale, and the prepaid balance is set to 4 rupees. Additionally, a danger level is set at 2 rupees, triggering an alert if the balance drops to or below this amount. The system now has four main outputs: the remaining balance, the total price of units consumed, an alert indicator for the danger level, and a display of the units consumed from the counter. This streamlined design allows for clear monitoring of electricity usage within these limits.
+  
   The "[Logisim](https://github.com/charuneyam/S1-T17-Prepaid-Smart-Energy-Management-System/tree/main/Logisim)" folder consists of the logisim file of hardware implementation of our project - Prepaid Energy Management System..
 
   Scaled-down Hardware Implementation Circuit
